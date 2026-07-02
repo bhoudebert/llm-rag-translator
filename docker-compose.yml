@@ -1,0 +1,29 @@
+# Ready-to-use Postgres with pgvector for the "postgres" translation-memory backend.
+#
+#   docker compose up -d
+#   export TM_BACKEND=postgres
+#   # default DSN already points at this: postgresql://tm:tm@localhost:13833/tm
+#
+# Host port 13833 is used to avoid colliding with other local Postgres instances.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: translate-manual-db
+    environment:
+      POSTGRES_USER: tm
+      POSTGRES_PASSWORD: tm
+      POSTGRES_DB: tm
+    ports:
+      - "13833:5432"
+    volumes:
+      - tm_pgdata:/var/lib/postgresql/data
+      # Enables the vector extension on first init (the app also does this itself).
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tm -d tm"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tm_pgdata:

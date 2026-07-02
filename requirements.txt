@@ -1,0 +1,6 @@
+anthropic>=0.49
+chromadb>=0.5
+python-dotenv>=1.0
+click>=8.1
+# Postgres backend (TM_BACKEND=postgres). chromadb still provides the embedder.
+psycopg[binary]>=3.1
