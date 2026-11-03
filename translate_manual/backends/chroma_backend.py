@@ -38,9 +38,7 @@ class ChromaTranslationMemory(TranslationMemory):
             metadata={"hnsw:space": "cosine"},
         )
 
-    def lookup(
-        self, source_text: str, n_results: int
-    ) -> list[tuple[str, str, float]]:
+    def lookup(self, source_text: str, n_results: int) -> list[tuple[str, str, float]]:
         count = self._collection.count()
         if count == 0:
             return []

@@ -63,9 +63,7 @@ class PgTranslationMemory(TranslationMemory):
         with self._conn.cursor() as cur:
             cur.execute(_SCHEMA % {"dim": int(embedding_dim)})
 
-    def lookup(
-        self, source_text: str, n_results: int
-    ) -> list[tuple[str, str, float]]:
+    def lookup(self, source_text: str, n_results: int) -> list[tuple[str, str, float]]:
         qvec = _vec_literal(embedding.embed_one(source_text))
         with self._conn.cursor() as cur:
             cur.execute(

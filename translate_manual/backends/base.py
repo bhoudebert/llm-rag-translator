@@ -14,9 +14,7 @@ class TranslationMemory(ABC):
     """
 
     @abstractmethod
-    def lookup(
-        self, source_text: str, n_results: int
-    ) -> list[tuple[str, str, float]]:
+    def lookup(self, source_text: str, n_results: int) -> list[tuple[str, str, float]]:
         """Return nearest entries as (source, translation, distance), nearest first."""
 
     @abstractmethod

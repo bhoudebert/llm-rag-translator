@@ -1,0 +1,15 @@
+{
+  "$comment": "Which code and tests belong to which capability. Read by scripts/spec-review.ts to find the requirements a change concerns. A file missing here is a warning, not a failure. Globs: * stays in a folder, ** crosses folders.",
+  "capabilities": {
+    "markdown-segmentation": { "code": ["translate_manual/segmenter.py"], "tests": ["tests/test_segmenter*.py"] },
+    "translation-memory": {
+      "code": ["translate_manual/backends/**", "translate_manual/embedding.py", "db/init.sql"],
+      "tests": ["tests/test_memory*.py", "tests/test_backends*.py"]
+    },
+    "translation-pipeline": {
+      "code": ["translate_manual/translator.py", "translate_manual/config.py"],
+      "tests": ["tests/test_translator*.py"]
+    },
+    "cli": { "code": ["translate_manual/cli.py"], "tests": ["tests/test_cli*.py"] }
+  }
+}
