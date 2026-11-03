@@ -1,8 +1,8 @@
 {
   "skill": "project-foundation",
-  "version": "0.1.2",
-  "sourceSha": "8411d78a509047943ae84fe45a15420dc476a4b6",
-  "templatesHash": "93d8f56dad7e91f9e2e1c5d2d07c8b486a398d61c90861b3fd5152f83ef881d3",
+  "version": "0.1.3",
+  "sourceSha": "f3d05e193f3fbd07577ed5f617537684d858a612",
+  "templatesHash": "3afc50ae017d2dd5c188ee48d96a8cd2107e2382c824bca3ec343d1b67276202",
   "generatedAt": "2026-11-03T21:44:34.498Z",
   "modules": null,
   "answers": {
@@ -54,7 +54,7 @@
     ".github/dependabot.yml": "ea4468dbb917a581a4646ab5096ed3d83d1396ad93c75b32920c41d7209353b9",
     ".github/workflows/ci.yml": "31ede06e4160d7ef3d6923d00550e1eed0a9cfe5d8e79d865b43a74c3c41d2c5",
     ".github/workflows/pr-title.yml": "ec88dd862a49722a785d5f6dc1782a815e3724335ff22a55ff140cc6b4893b62",
-    ".github/workflows/codeql.yml": "094844f82df60358453ea7b369586424367ffce37e7982295153acae6799b982",
+    ".github/workflows/codeql.yml": "84b9f1c55865250fda3fe6ad0520b9b47f578280c206b03577df2229b64d3b8c",
     ".github/workflows/release.yml": "2acee78f1e13bf3be6cc92e84a438d37be24b77da855fa60d42e7b6e2ca1944c",
     "release-please-config.json": "3e7894d44b8ab568637666d1610a713be1ed7bb958d3962dd9755543f992f7aa",
     ".release-please-manifest.json": "b9c66e0126774ab9fa34536f15972438356e7035724a2c0f0ca3b125967e6399",
@@ -86,5 +86,6 @@
     "docs/adr/0004-specs-are-checked-in-ci.md": "954037a9bd9bd70fd85297978eb64be47453d7da7147d23b7ced389037b8985d",
     "flake.nix": "5ac0dce46f91b3758b703cff07c502cbaa071f59d84f35660a979f7b19280aeb",
     ".envrc": "1d26c74fd25a4c3dbb09e029fc609588da499fd4af2a41c88f6316c7f8c54cf1"
-  }
+  },
+  "upgradedAt": "2026-11-03T21:59:17.133Z"
 }

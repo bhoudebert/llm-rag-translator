@@ -9,6 +9,8 @@ on:
     - cron: "31 6 * * 3"
 
 permissions:
+  # `actions: read` is what the CodeQL action needs on a private repository, to read the workflow run when it uploads.
+  actions: read
   contents: read
   security-events: write
 
