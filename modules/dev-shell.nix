@@ -8,7 +8,7 @@
           git
           gh
           jq
-          python313
+          (python313.withPackages (ps: [ ps.pytest ]))
           ruff
           uv
           # spec-review scripts and `openspec` run on Node (type stripping needs 24+)
