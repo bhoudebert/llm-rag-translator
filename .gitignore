@@ -13,4 +13,6 @@ dist/
 .idea/
 .vscode/
 .direnv/
+result
+result-*
 .spec-review/
