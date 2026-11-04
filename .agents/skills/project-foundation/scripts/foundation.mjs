@@ -8,8 +8,8 @@
 //   my-skills list | version
 // Every command takes --target <folder> (default: the current folder); init also --modules a,b, --dry-run, --force, --yes.
 //
-// Node standard library only. Never runs git on the target, never uses the network, never overwrites a file that exists
-// unless --force is given. `init` records what it wrote in .project-foundation.json (the skill version and source commit,
+// Node standard library only. Never changes git state (it only reads `git ls-files`, to warn about files that are tracked
+// although they are now ignored), never uses the network, never overwrites a file that exists unless --force is given. `init` records what it wrote in .project-foundation.json (the skill version and source commit,
 // the answers, a hash of every generated file), which is what lets `upgrade` tell a template change from a local edit.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -103,10 +103,34 @@ export function plan(config, requested) {
   return { root, components, files };
 }
 
-function mergeGitignore(existing, wanted) {
+/** The lines of `wanted` that `existing` does not have yet (comments and blanks are not lines). */
+function missingLines(existing, wanted) {
   const have = new Set(existing.split("\n").map((l) => l.trim()));
-  const add = wanted.split("\n").filter((l) => l.trim() && !l.startsWith("#") && !have.has(l.trim()));
+  return wanted.split("\n").filter((l) => l.trim() && !l.startsWith("#") && !have.has(l.trim()));
+}
+
+function mergeGitignore(existing, wanted) {
+  const add = missingLines(existing, wanted);
   return add.length ? `${existing.replace(/\n+$/, "")}\n\n# project-foundation\n${add.join("\n")}\n` : existing;
+}
+
+/**
+ * An ignore line does not untrack a file git already tracks: say which folders still are. A read-only look; the repository
+ * may not be a git one, and then there is nothing to say.
+ */
+function trackedNotes(target, lines) {
+  const notes = [];
+  for (const line of lines) {
+    if (!line.endsWith("/") || line.startsWith("#") || /[*?!\[]/.test(line)) continue;
+    try {
+      const out = execFileSync("git", ["-C", target, "ls-files", "--cached", "--", line.replace(/^\//, "")], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+      const count = out.split("\n").filter(Boolean).length;
+      if (count) notes.push(`${count} file(s) under ${line} are tracked by git although it is now ignored: \`git rm -r --cached ${line.replace(/\/$/, "")}\` untracks them (the files stay on disk).`);
+    } catch {
+      return notes; // not a git repository
+    }
+  }
+  return notes;
 }
 
 // ------------------------------------------------------------------------------------------------ init
@@ -116,6 +140,7 @@ export function init({ config, target, modules, dryRun = false, force = false })
   const { root, files } = plan(config, requested);
   const report = { created: [], replaced: [], merged: [], skipped: [], notes: [] };
   const written = {};
+  const ignored = [];
   for (const file of files) {
     const dest = path.join(target, file.dest);
     const exists = existsSync(dest);
@@ -123,6 +148,7 @@ export function init({ config, target, modules, dryRun = false, force = false })
       const before = readFileSync(dest, "utf8");
       const after = mergeGitignore(before, file.text);
       if (after !== before) {
+        ignored.push(...missingLines(before, file.text));
         report.merged.push(file.dest);
         if (!dryRun) writeFileSync(dest, after);
       }
@@ -141,6 +167,7 @@ export function init({ config, target, modules, dryRun = false, force = false })
       continue;
     }
     (exists ? report.replaced : report.created).push(file.dest);
+    if (file.merge === "gitignore") ignored.push(...missingLines("", file.text));
     if (!file.merge) written[file.dest] = sha256(file.text);
     if (dryRun) continue;
     mkdirSync(path.dirname(dest), { recursive: true });
@@ -152,6 +179,7 @@ export function init({ config, target, modules, dryRun = false, force = false })
       "the spec reviewer detects code changes under src/ and reads TypeScript test titles; for another stack its test-title and unmapped-file checks do nothing (the spec and code-map checks still work).",
     );
   }
+  if (!dryRun) report.notes.push(...trackedNotes(target, ignored));
   if (root.nix) report.notes.push("run `nix flake lock` in the repository once, to pin nixpkgs (it needs the network), and commit flake.lock.");
   if (!dryRun) {
     const provenance = {
@@ -187,10 +215,33 @@ export function upgrade({ target, apply = false, config }) {
   const provenance = readProvenance(target);
   const answers = config ?? provenance.answers;
   const { files } = plan(answers, provenance.modules ? new Set(provenance.modules) : null);
-  const result = { unchanged: [], update: [], conflict: [], edited: [], new: [], missing: [], applied: [] };
+  const result = { unchanged: [], update: [], conflict: [], edited: [], new: [], missing: [], applied: [], merged: [], notes: [] };
   const recordedNow = { ...provenance.files };
+  const ignored = [];
   for (const file of files) {
-    if (file.merge) continue;
+    if (file.merge) {
+      // Lines are only ever added to these files, never changed or removed: the user's own lines stay.
+      const dest = path.join(target, file.dest);
+      if (!existsSync(dest)) {
+        // The answers need a file the repository does not have (spec-driven turned on later needs .env.example): create it.
+        result.new.push(file.dest);
+        if (apply) {
+          mkdirSync(path.dirname(dest), { recursive: true });
+          writeFileSync(dest, file.text);
+          result.applied.push(file.dest);
+        }
+        continue;
+      }
+      const before = readFileSync(dest, "utf8");
+      let after = before;
+      if (file.merge === "gitignore") after = mergeGitignore(before, file.text);
+      else if (file.merge === "append" && file.text.trim() && !before.includes(file.text.trim())) after = `${before.replace(/\n+$/, "")}\n\n${file.text}`;
+      if (after === before) continue;
+      result.merged.push(file.dest);
+      if (file.merge === "gitignore") ignored.push(...missingLines(before, file.text));
+      if (apply) writeFileSync(dest, after);
+      continue;
+    }
     const dest = path.join(target, file.dest);
     const recorded = provenance.files[file.dest];
     const next = sha256(file.text);
@@ -219,9 +270,13 @@ export function upgrade({ target, apply = false, config }) {
       }
     }
   }
+  if (apply) result.notes.push(...trackedNotes(target, ignored));
   if (apply) {
     const next = {
       ...provenance,
+      // New answers given with --config are the repository's answers from now on: otherwise the next `upgrade` would
+      // render from the old ones and offer to undo what was just applied.
+      answers,
       files: recordedNow,
       // The recorded version moves forward only when nothing is left to merge by hand.
       ...(result.conflict.length ? {} : { version: skillVersion(), sourceSha: skillSourceSha(), templatesHash: templatesHash() }),
@@ -361,7 +416,9 @@ export async function main(argv, out = console.log, input = process.stdin) {
       printList(`changed in the templates and edited here${values.apply ? " (the template is next to it as <file>.upstream)" : ""}`, r.conflict);
       printList("edited here, unchanged in the templates (kept)", r.edited);
       printList("recorded at init but deleted here", r.missing);
-      if (!r.update.length && !r.new.length && !r.conflict.length) out("nothing to upgrade: the generated files match the templates");
+      printList(values.apply ? "gained the lines they lacked (yours are kept)" : "lack lines the templates now have (--apply adds them)", r.merged);
+      for (const note of r.notes) out(`note: ${note}`);
+      if (!r.update.length && !r.new.length && !r.conflict.length && !r.merged.length) out("nothing to upgrade: the generated files match the templates");
       return r.conflict.length ? 1 : 0;
     }
     case "badges": {
