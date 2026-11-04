@@ -1,0 +1,64 @@
+#!/bin/sh
+# The quality gate of each component of this repository, whole or for what a branch changed.
+#
+#   sh scripts/quality.sh                  every component
+#   sh scripts/quality.sh --changed        the components this branch changed (the pre-push hook)
+#   sh scripts/quality.sh --changed --base origin/@@default_branch@@
+#   sh scripts/quality.sh <component>...   some components: @@quality_names@@
+#
+# Each gate runs from the component's folder, with the tools of its own stack.
+
+@@quality_functions@@
+
+path_of() {
+  case "$1" in
+@@quality_paths_case@@
+    *) echo "unknown component: $1" >&2; return 1 ;;
+  esac
+}
+
+usage() { sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; }
+
+mode=all
+base=
+selected=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --changed) mode=changed ;;
+    --base) shift; base="$1" ;;
+    -h|--help) usage; exit 0 ;;
+    *) selected="$selected $1" ;;
+  esac
+  shift
+done
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+if [ -z "$selected" ]; then
+  if [ "$mode" = changed ]; then
+    [ -n "$base" ] || base=$(git merge-base HEAD '@{upstream}' 2>/dev/null || git merge-base HEAD origin/@@default_branch@@ 2>/dev/null || true)
+    if [ -n "$base" ]; then
+      # Commits of the branch, then what is staged, modified or new.
+      files=$( { git diff --name-only "$base" HEAD; git diff --name-only HEAD; git ls-files --others --exclude-standard; } 2>/dev/null )
+    else
+      echo "quality: no base to compare with: running every component" >&2
+      files=ALL
+    fi
+    for name in @@quality_names@@; do
+      dir=$(path_of "$name")
+      if [ "$files" = ALL ] || echo "$files" | grep -q "^$dir/"; then selected="$selected $name"; fi
+    done
+    [ -n "$selected" ] || { echo "quality: no component changed, nothing to run"; exit 0; }
+  else
+    selected="@@quality_names@@"
+  fi
+fi
+
+status=0
+for name in $selected; do
+  path_of "$name" >/dev/null || exit 2
+  case "$name" in
+@@quality_dispatch@@
+  esac
+done
+exit "$status"

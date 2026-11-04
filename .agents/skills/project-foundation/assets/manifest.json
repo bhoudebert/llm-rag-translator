@@ -1,0 +1,310 @@
+{
+  "_comment": "What foundation.mjs writes. A module is on unless it names enabled_by (an answer that must be true). A file with `only` needs that variable true; `unless` skips it when true. `exec` marks scripts executable. `merge: gitignore` appends missing lines to an existing .gitignore instead of skipping it.",
+  "modules": {
+    "agent-instructions": {
+      "summary": "One AGENTS.md that every agent reads, with thin adapters for Claude Code, Gemini CLI and GitHub Copilot",
+      "files": [
+        {
+          "src": "agents/AGENTS.md.tmpl",
+          "dest": "AGENTS.md"
+        },
+        {
+          "src": "agents/CLAUDE.md.tmpl",
+          "dest": "CLAUDE.md"
+        },
+        {
+          "src": "agents/GEMINI.md.tmpl",
+          "dest": "GEMINI.md"
+        },
+        {
+          "src": "agents/copilot-instructions.md.tmpl",
+          "dest": ".github/copilot-instructions.md"
+        },
+        {
+          "src": "agents/tests.instructions.md.tmpl",
+          "dest": ".github/instructions/tests.instructions.md"
+        },
+        {
+          "src": "agents/docs.instructions.md.tmpl",
+          "dest": ".github/instructions/docs.instructions.md"
+        },
+        {
+          "src": "agents/component-AGENTS.md.tmpl",
+          "dest": "@@component_path@@/AGENTS.md",
+          "for_each": "component",
+          "only": "monorepo"
+        },
+        {
+          "src": "agents/CLAUDE.md.tmpl",
+          "dest": "@@component_path@@/CLAUDE.md",
+          "for_each": "component",
+          "only": "monorepo"
+        },
+        {
+          "src": "agents/GEMINI.md.tmpl",
+          "dest": "@@component_path@@/GEMINI.md",
+          "for_each": "component",
+          "only": "monorepo"
+        },
+        {
+          "src": "agents/component.instructions.md.tmpl",
+          "dest": ".github/instructions/@@component_name@@.instructions.md",
+          "for_each": "component",
+          "only": "monorepo"
+        }
+      ]
+    },
+    "community": {
+      "summary": "README, CONTRIBUTING with the workflow drawing, SECURITY, SUPPORT, CODE_OF_CONDUCT, LICENSE, ROADMAP, editor and ignore files",
+      "files": [
+        {
+          "src": "community/README.md.tmpl",
+          "dest": "README.md"
+        },
+        {
+          "src": "community/CONTRIBUTING.md.tmpl",
+          "dest": "CONTRIBUTING.md"
+        },
+        {
+          "src": "community/SECURITY.md.tmpl",
+          "dest": "SECURITY.md"
+        },
+        {
+          "src": "community/SUPPORT.md.tmpl",
+          "dest": "SUPPORT.md"
+        },
+        {
+          "src": "community/CODE_OF_CONDUCT.md.tmpl",
+          "dest": "CODE_OF_CONDUCT.md"
+        },
+        {
+          "src": "community/LICENSE-MIT.tmpl",
+          "dest": "LICENSE",
+          "only": "license_mit"
+        },
+        {
+          "src": "community/ROADMAP.md.tmpl",
+          "dest": "ROADMAP.md"
+        },
+        {
+          "src": "community/editorconfig.tmpl",
+          "dest": ".editorconfig"
+        },
+        {
+          "src": "community/gitignore.tmpl",
+          "dest": ".gitignore",
+          "merge": "gitignore"
+        },
+        {
+          "src": "community/nvmrc.tmpl",
+          "dest": "@@component_path@@/.nvmrc",
+          "for_each": "component",
+          "only": "lang_node"
+        },
+        {
+          "src": "community/rust-toolchain.toml.tmpl",
+          "dest": "@@component_path@@/rust-toolchain.toml",
+          "for_each": "component",
+          "only": "lang_rust"
+        },
+        {
+          "src": "community/python-version.tmpl",
+          "dest": "@@component_path@@/.python-version",
+          "for_each": "component",
+          "only": "lang_python"
+        }
+      ]
+    },
+    "decisions": {
+      "summary": "The path from idea to release (docs/EVOLVING.md), an architecture skeleton, and architecture decision records with a template and two seed records",
+      "files": [
+        {
+          "src": "decisions/EVOLVING.md.tmpl",
+          "dest": "docs/EVOLVING.md"
+        },
+        {
+          "src": "decisions/ENGINEERING.md.tmpl",
+          "dest": "docs/ENGINEERING.md"
+        },
+        {
+          "src": "decisions/adr-README.md.tmpl",
+          "dest": "docs/adr/README.md"
+        },
+        {
+          "src": "decisions/adr-template.md",
+          "dest": "docs/adr/template.md"
+        },
+        {
+          "src": "decisions/0001-record-architecture-decisions.md.tmpl",
+          "dest": "docs/adr/0001-record-architecture-decisions.md"
+        },
+        {
+          "src": "decisions/0002-conventional-commits-and-automated-releases.md.tmpl",
+          "dest": "docs/adr/0002-conventional-commits-and-automated-releases.md"
+        },
+        {
+          "src": "decisions/0003-one-agent-instruction-file.md.tmpl",
+          "dest": "docs/adr/0003-one-agent-instruction-file.md"
+        }
+      ]
+    },
+    "github": {
+      "summary": "Pull request template, issue templates, CODEOWNERS, Dependabot",
+      "files": [
+        {
+          "src": "github/pull_request_template.md.tmpl",
+          "dest": ".github/pull_request_template.md"
+        },
+        {
+          "src": "github/ISSUE_TEMPLATE/bug_report.md.tmpl",
+          "dest": ".github/ISSUE_TEMPLATE/bug_report.md"
+        },
+        {
+          "src": "github/ISSUE_TEMPLATE/feature_request.md.tmpl",
+          "dest": ".github/ISSUE_TEMPLATE/feature_request.md"
+        },
+        {
+          "src": "github/ISSUE_TEMPLATE/config.yml.tmpl",
+          "dest": ".github/ISSUE_TEMPLATE/config.yml"
+        },
+        {
+          "src": "github/CODEOWNERS.tmpl",
+          "dest": ".github/CODEOWNERS"
+        },
+        {
+          "src": "github/dependabot.yml.tmpl",
+          "dest": ".github/dependabot.yml",
+          "only": "dependabot"
+        }
+      ]
+    },
+    "ci": {
+      "summary": "One CI workflow with a job per component and a single required check, the pull request title check, CodeQL",
+      "files": [
+        {
+          "src": "github/workflows/ci.yml.tmpl",
+          "dest": ".github/workflows/ci.yml"
+        },
+        {
+          "src": "github/workflows/pr-title.yml.tmpl",
+          "dest": ".github/workflows/pr-title.yml"
+        },
+        {
+          "src": "github/workflows/codeql.yml.tmpl",
+          "dest": ".github/workflows/codeql.yml",
+          "only": "codeql"
+        }
+      ]
+    },
+    "release": {
+      "summary": "release-please: a release pull request with the version and the changelog, from Conventional Commits",
+      "enabled_by": "release_please",
+      "files": [
+        {
+          "src": "github/workflows/release.yml.tmpl",
+          "dest": ".github/workflows/release.yml"
+        },
+        {
+          "src": "github/release-please-config.json.tmpl",
+          "dest": "release-please-config.json"
+        },
+        {
+          "src": "github/release-please-manifest.json.tmpl",
+          "dest": ".release-please-manifest.json"
+        }
+      ]
+    },
+    "hooks": {
+      "summary": "Tool-neutral git hooks (Conventional Commits, quality before push) and the same commit check for CI",
+      "files": [
+        {
+          "src": "hooks/commit-msg.tmpl",
+          "dest": ".githooks/commit-msg",
+          "exec": true
+        },
+        {
+          "src": "hooks/pre-commit.tmpl",
+          "dest": ".githooks/pre-commit",
+          "exec": true,
+          "only": "precommit_cmd"
+        },
+        {
+          "src": "hooks/pre-push.tmpl",
+          "dest": ".githooks/pre-push",
+          "exec": true
+        },
+        {
+          "src": "hooks/conventional-commit-check.sh.tmpl",
+          "dest": "scripts/conventional-commit-check.sh",
+          "exec": true
+        },
+        {
+          "src": "hooks/check-commit-messages.sh.tmpl",
+          "dest": "scripts/check-commit-messages.sh",
+          "exec": true
+        },
+        {
+          "src": "hooks/setup-hooks.sh.tmpl",
+          "dest": "scripts/setup-hooks.sh",
+          "exec": true
+        },
+        {
+          "src": "hooks/quality.sh.tmpl",
+          "dest": "scripts/quality.sh",
+          "exec": true,
+          "only": "monorepo"
+        }
+      ]
+    },
+    "spec-driven": {
+      "summary": "Specs as requirements with scenarios, a code map, and the spec-drift reviewer (deterministic checks in CI and in the push hook, an optional local model)",
+      "enabled_by": "spec_driven",
+      "files": [
+        {
+          "tree": "spec-driven/scripts",
+          "dest": "scripts",
+          "raw": true
+        },
+        {
+          "src": "spec-driven/openspec-README.md.tmpl",
+          "dest": "openspec/README.md"
+        },
+        {
+          "src": "spec-driven/code-map.json.tmpl",
+          "dest": "openspec/code-map.json"
+        },
+        {
+          "src": "spec-driven/spec-template.md",
+          "dest": "openspec/spec-template.md"
+        },
+        {
+          "src": "spec-driven/specs.yml.tmpl",
+          "dest": ".github/workflows/specs.yml"
+        },
+        {
+          "src": "spec-driven/0004-specs-are-checked-in-ci.md.tmpl",
+          "dest": "docs/adr/0004-specs-are-checked-in-ci.md"
+        },
+        {
+          "src": "spec-driven/env-example.tmpl",
+          "dest": ".env.example",
+          "merge": "append"
+        }
+      ]
+    },
+    "nix": {
+      "summary": "A Nix flake dev shell with the toolchains of every component, and direnv",
+      "enabled_by": "nix",
+      "files": [
+        {
+          "src": "nix/flake.nix.tmpl",
+          "dest": "flake.nix"
+        },
+        {
+          "src": "nix/envrc.tmpl",
+          "dest": ".envrc"
+        }
+      ]
+    }
+  }
+}

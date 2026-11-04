@@ -1,0 +1,12 @@
+  quality-@@component_name@@:
+    name: @@component_name@@ (@@label@@)
+    runs-on: ubuntu-latest
+@@#if monorepo@@    needs: changes
+    if: needs.changes.outputs.@@component_key@@ == 'true'
+@@/if@@    steps:
+      - uses: actions/checkout@v7
+      # TODO: set up the toolchain of this component (a setup-* action), then run its quality gate.
+      - name: Quality gate
+        run: |
+          echo "Replace this step with the quality gate of @@component_name@@ (build, lint, tests)."
+          exit 1

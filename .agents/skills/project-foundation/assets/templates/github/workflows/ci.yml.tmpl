@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [@@default_branch@@]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# One job per component. A pull request runs only the components it touches, and the job "Quality gate" at the end is the
+# one required check: it passes when every job passed or was skipped, so a path filter can never leave a required check
+# pending (which a filter on the workflow itself would).
+jobs:
+@@#if monorepo@@  changes:
+    name: Which components changed
+    runs-on: ubuntu-latest
+    outputs:
+@@changes_outputs@@
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+@@changes_script@@
+
+@@/if@@@@ci_jobs@@
+
+  commits:
+    name: Conventional commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Full history: every commit message of the pull request is checked.
+          fetch-depth: 0
+      - run: sh scripts/check-commit-messages.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+  quality:
+    name: Quality gate
+    if: always()
+    needs: [@@gate_needs@@]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job passed or was skipped
+        run: |
+          echo "results: ${{ join(needs.*.result, ' ') }}"
+          if echo "${{ join(needs.*.result, ' ') }}" | grep -Eq 'failure|cancelled'; then exit 1; fi

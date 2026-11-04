@@ -1,0 +1,4 @@
+#!/bin/sh
+# Fast checks on the staged files. Skip with: git commit --no-verify (CI checks again).
+cd "$(git rev-parse --show-toplevel)" || exit 1
+exec @@precommit_cmd@@
