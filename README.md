@@ -1,5 +1,9 @@
 # LLM RAG Translator
 
+<!-- badges:start -->
+[![CI](https://github.com/bhoudebert/llm-rag-translator/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bhoudebert/llm-rag-translator/actions/workflows/ci.yml) [![CodeQL](https://github.com/bhoudebert/llm-rag-translator/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/bhoudebert/llm-rag-translator/actions/workflows/codeql.yml) [![Release](https://img.shields.io/github/v/release/bhoudebert/llm-rag-translator)](https://github.com/bhoudebert/llm-rag-translator/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<!-- badges:end -->
+
 Translate Markdown manuals with Claude, backed by a RAG translation memory.
 
 > [!CAUTION]
