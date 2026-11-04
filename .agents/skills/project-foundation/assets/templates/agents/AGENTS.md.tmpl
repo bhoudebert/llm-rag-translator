@@ -60,6 +60,37 @@ scope or its pull request, and each component's gate must pass.
    descriptions or comments.
 @@/if@@
 
+## Starting and delivering a change
+
+Before the first edit of any task, **including running a tool that writes files** (a generator, a formatter, an upgrade
+command), look at where you are:
+
+1. Run `git branch --show-current`.
+2. **On `@@default_branch@@`**: do not edit there. Update it (`git pull --ff-only`), create a branch from it named
+   `<type>/<short-topic>` (`feat/`, `fix/`, `docs/`, `chore/`, ...), tell the user its name, and go on. Do not ask first:
+   starting a branch is part of the task. Uncommitted changes you find come along to the new branch; say so.
+3. **On another branch**: ask once, "You are on `<branch>`: is this the right place for this change, or should I start a new
+   branch from `@@default_branch@@`?", and keep the answer for the whole task. Do not ask when the user already said where to
+   work, or when the change plainly continues the pull request of this branch.
+
+@@#if agent_opens_prs@@
+When the work is done and the gate passes: commit (one concern per commit), push **the branch**, never `@@default_branch@@`, open the pull
+request with the template (`gh pr create`), report its URL, and stop. Never merge it.
+@@/if@@@@#unless agent_opens_prs@@
+When the work is done and the gate passes: commit, tell the user the branch name and that it is ready, and stop. Push and open
+the pull request only when asked.
+@@/unless@@
+**Stage only the files of your task**: `git add <paths>`, never `git add -A` or `git commit -a`. Anything else in the working
+tree is not yours: leave it, and mention it to the user.
+@@#if skill_in_repo@@
+The `project-foundation` skill is committed in this repository (`.agents/skills/`, `.claude/skills/`, `skills-lock.json`), so
+every contributor and agent has the same rules and tools. `npx skills update` changes those files: that is a change of its own,
+on its own branch (`chore/update-project-foundation`) and pull request, never mixed into another one.
+@@/if@@
+
+Git refuses a commit on `@@default_branch@@` and a push to it (`ALLOW_DEFAULT_BRANCH=1` for the rare exception), but that is a backstop: by
+then the edit is already done. The check above comes first.
+
 ## How an agent works here
 
 - **Smallest change that solves the request.** Do not refactor, rename or
@@ -67,9 +98,11 @@ scope or its pull request, and each component's gate must pass.
 - **Verify, then claim.** Run the gate and the relevant tests; report what
   passed, what failed and what you did not run, with the output. Never write
   "done" for something unverified.
-- **Ask before anything hard to reverse or visible to others**: pushing,
-  merging, deleting, force-pushing, publishing, spending money, changing
-  settings. Approval for one action is not approval for the next.
+- **Ask before anything hard to reverse or visible to others**: pushing to
+  `@@default_branch@@`, force-pushing, merging, deleting, publishing, spending money, changing
+  settings. Pushing your own branch and opening its pull request is part of the
+  task (see above), not something to ask about. Approval for one action is not
+  approval for the next.
 - **Secrets stay secret.** Never read, print, log or commit `.env`, keys or
   tokens. Tests run without real credentials.
 - **Hooks and CI are the rules, not obstacles.** Never skip a hook

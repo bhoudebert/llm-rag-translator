@@ -35,6 +35,14 @@ and direnv) when the user uses Nix: it is off by default.
 
 ## Workflow
 
+### 0. Start on a branch
+
+Before this skill writes anything (`init`, `upgrade --apply`, `badges --apply`, or a hand edit of a generated file), run
+`git branch --show-current` in the target repository. On the default branch, create a branch first (`chore/…`, `docs/…`),
+without asking, and say which; on another branch, ask once whether it is the right place. Then work, and when done push the
+branch and open a pull request unless the user asked to stop earlier. Never commit to the default branch. A brand-new
+repository with no commit yet is the one exception: the first commit may go on the default branch.
+
 ### 1. Look before asking
 
 Read the target folder: is it empty, or an existing repository? `ls`, `git log --oneline | head`, manifests
@@ -47,8 +55,9 @@ templates; keep the project's own wording where it already says the same thing).
 
 **Stop and ask before generating anything.** What you detected (stacks, GitHub owner and repo, the name) are facts you can state.
 The choices are the user's: whether the repository is public or private and so whether CodeQL runs (private needs the paid
-GitHub Code Security, see `references/interview.md`), the Nix dev shell, release automation, spec-driven, the attribution rule,
-the maintainer, and any command that does not fit what you saw (the quality gate above all). A default is a proposal, not a decision, so never apply
+GitHub Code Security, see `references/interview.md`), whether the installed skill is committed into the repository (a repository that has it works the same for
+every contributor), whether agents open pull requests themselves, the Nix dev shell, release automation, spec-driven, the
+attribution rule, the maintainer, and any command that does not fit what you saw (the quality gate above all). A default is a proposal, not a decision, so never apply
 one silently.
 
 Send **one message** with: what you found, then a numbered list of every choice with the default you suggest, and end with

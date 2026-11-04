@@ -28,7 +28,9 @@
     "ci_timeout": "20",
     "scopes_example": "api, cli, core, docs, deps, release",
     "nix": false,
-    "nix_packages": ""
+    "nix_packages": "",
+    "agent_opens_prs": true,
+    "skill_in_repo": true
   },
   "profiles": {
     "node": {

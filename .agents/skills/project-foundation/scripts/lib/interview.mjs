@@ -165,6 +165,8 @@ export async function interview(target, asker, { hasNix = false, out = (t) => co
   if (!answers.components && answers.profile === "node") {
     answers.spec_driven = await yesNo("Spec-driven development (openspec and the spec-drift reviewer)?", false);
   }
+  answers.agent_opens_prs = await yesNo("Should agents open pull requests themselves (push a branch, gh pr create)?", true);
+  answers.skill_in_repo = await yesNo("Commit the installed skill into the repository, so every contributor and agent has it?", true);
   answers.no_attribution = await yesNo("Forbid attribution trailers and generated-by footers in commits?", true);
   return answers;
 }

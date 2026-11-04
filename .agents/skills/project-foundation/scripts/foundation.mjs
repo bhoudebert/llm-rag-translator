@@ -115,22 +115,24 @@ function mergeGitignore(existing, wanted) {
 }
 
 /**
- * An ignore line does not untrack a file git already tracks: say which folders still are. A read-only look; the repository
- * may not be a git one, and then there is nothing to say.
+ * Files git tracks although .gitignore ignores them (added before the line, or by a sweep like `git add -A`, or forced).
+ * Ignoring does not untrack: they stay in `git status` and in every commit. Grouped by folder. Read-only.
  */
-function trackedNotes(target, lines) {
-  const notes = [];
-  for (const line of lines) {
-    if (!line.endsWith("/") || line.startsWith("#") || /[*?!\[]/.test(line)) continue;
-    try {
-      const out = execFileSync("git", ["-C", target, "ls-files", "--cached", "--", line.replace(/^\//, "")], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-      const count = out.split("\n").filter(Boolean).length;
-      if (count) notes.push(`${count} file(s) under ${line} are tracked by git although it is now ignored: \`git rm -r --cached ${line.replace(/\/$/, "")}\` untracks them (the files stay on disk).`);
-    } catch {
-      return notes; // not a git repository
-    }
+export function trackedButIgnored(target) {
+  let out;
+  try {
+    out = execFileSync("git", ["-C", target, "ls-files", "-ci", "--exclude-standard"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  } catch {
+    return []; // not a git repository
   }
-  return notes;
+  const groups = new Map();
+  for (const file of out.split("\n").filter(Boolean)) {
+    const top = file.includes("/") ? `${file.split("/")[0]}/` : file;
+    groups.set(top, (groups.get(top) ?? 0) + 1);
+  }
+  return [...groups].map(
+    ([top, count]) => `${count} file(s) under ${top} are tracked by git although .gitignore ignores them: \`git rm -r --cached ${top.replace(/\/$/, "")}\` untracks them (the files stay on disk).`,
+  );
 }
 
 // ------------------------------------------------------------------------------------------------ init
@@ -140,7 +142,6 @@ export function init({ config, target, modules, dryRun = false, force = false })
   const { root, files } = plan(config, requested);
   const report = { created: [], replaced: [], merged: [], skipped: [], notes: [] };
   const written = {};
-  const ignored = [];
   for (const file of files) {
     const dest = path.join(target, file.dest);
     const exists = existsSync(dest);
@@ -148,7 +149,6 @@ export function init({ config, target, modules, dryRun = false, force = false })
       const before = readFileSync(dest, "utf8");
       const after = mergeGitignore(before, file.text);
       if (after !== before) {
-        ignored.push(...missingLines(before, file.text));
         report.merged.push(file.dest);
         if (!dryRun) writeFileSync(dest, after);
       }
@@ -167,7 +167,6 @@ export function init({ config, target, modules, dryRun = false, force = false })
       continue;
     }
     (exists ? report.replaced : report.created).push(file.dest);
-    if (file.merge === "gitignore") ignored.push(...missingLines("", file.text));
     if (!file.merge) written[file.dest] = sha256(file.text);
     if (dryRun) continue;
     mkdirSync(path.dirname(dest), { recursive: true });
@@ -179,7 +178,7 @@ export function init({ config, target, modules, dryRun = false, force = false })
       "the spec reviewer detects code changes under src/ and reads TypeScript test titles; for another stack its test-title and unmapped-file checks do nothing (the spec and code-map checks still work).",
     );
   }
-  if (!dryRun) report.notes.push(...trackedNotes(target, ignored));
+  if (!dryRun) report.notes.push(...trackedButIgnored(target));
   if (root.nix) report.notes.push("run `nix flake lock` in the repository once, to pin nixpkgs (it needs the network), and commit flake.lock.");
   if (!dryRun) {
     const provenance = {
@@ -189,7 +188,9 @@ export function init({ config, target, modules, dryRun = false, force = false })
       templatesHash: templatesHash(),
       generatedAt: new Date().toISOString(),
       modules: modules ?? null,
-      answers: config,
+      // The date is part of what was generated (the decision records carry it): freeze it, or every later `upgrade` would
+      // see the records as changed.
+      answers: { today: root.today, year: root.year, ...config },
       files: written,
     };
     mkdirSync(target, { recursive: true });
@@ -213,11 +214,12 @@ const readProvenance = (target) => {
  */
 export function upgrade({ target, apply = false, config }) {
   const provenance = readProvenance(target);
-  const answers = config ?? provenance.answers;
+  // A repository generated before the date was recorded: the day it was generated is the date its records carry.
+  const generatedOn = provenance.generatedAt ? { today: provenance.generatedAt.slice(0, 10), year: provenance.generatedAt.slice(0, 4) } : {};
+  const answers = { ...generatedOn, ...(config ?? provenance.answers) };
   const { files } = plan(answers, provenance.modules ? new Set(provenance.modules) : null);
   const result = { unchanged: [], update: [], conflict: [], edited: [], new: [], missing: [], applied: [], merged: [], notes: [] };
   const recordedNow = { ...provenance.files };
-  const ignored = [];
   for (const file of files) {
     if (file.merge) {
       // Lines are only ever added to these files, never changed or removed: the user's own lines stay.
@@ -238,7 +240,6 @@ export function upgrade({ target, apply = false, config }) {
       else if (file.merge === "append" && file.text.trim() && !before.includes(file.text.trim())) after = `${before.replace(/\n+$/, "")}\n\n${file.text}`;
       if (after === before) continue;
       result.merged.push(file.dest);
-      if (file.merge === "gitignore") ignored.push(...missingLines(before, file.text));
       if (apply) writeFileSync(dest, after);
       continue;
     }
@@ -270,7 +271,7 @@ export function upgrade({ target, apply = false, config }) {
       }
     }
   }
-  if (apply) result.notes.push(...trackedNotes(target, ignored));
+  result.notes.push(...trackedButIgnored(target));
   if (apply) {
     const next = {
       ...provenance,
@@ -302,6 +303,7 @@ export function status(target) {
     recorded: { version: provenance.version, sourceSha: provenance.sourceSha, generatedAt: provenance.generatedAt },
     current: { version: now.version, sourceSha: now.sourceSha },
     upToDate: provenance.templatesHash === now.templatesHash,
+    notes: trackedButIgnored(target),
   };
 }
 
@@ -448,6 +450,7 @@ export async function main(argv, out = console.log, input = process.stdin) {
       out(`generated with project-foundation ${s.recorded.version}${s.recorded.sourceSha ? ` (${s.recorded.sourceSha.slice(0, 7)})` : ""} on ${s.recorded.generatedAt?.slice(0, 10)}`);
       out(`installed skill is ${s.current.version}${s.current.sourceSha ? ` (${s.current.sourceSha.slice(0, 7)})` : ""}`);
       out(s.upToDate ? "the templates are the ones this repository was generated from" : "the templates changed since: run `upgrade` to see what differs");
+      for (const note of s.notes) out(`note: ${note}`);
       return s.upToDate ? 0 : 1;
     }
     default:
