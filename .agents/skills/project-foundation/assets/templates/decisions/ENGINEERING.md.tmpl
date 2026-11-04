@@ -1,0 +1,40 @@
+# Engineering
+
+How @@project_name@@ is built. Keep this page true: update it in the same pull request as an architectural change.
+
+## Overview
+
+<!-- One paragraph and one diagram: what the parts are and how a request flows through them. -->
+
+## Layout
+
+@@#if monorepo@@@@components_table@@
+
+Shared rules, hooks and CI live at the root; each component owns its code, tests, dependencies and toolchain pin. `docs/`
+holds this page, the workflow (EVOLVING.md) and the decision records (adr/).
+@@/if@@@@#unless monorepo@@```
+@@src_dir@@/    the code
+@@test_dir@@/   the tests
+docs/       this page, the workflow (EVOLVING.md) and the decision records (adr/)
+```
+@@/unless@@
+
+## Key decisions
+
+The reasons live in [`docs/adr/`](adr/README.md). The ones that shape everything else:
+
+- [0001](adr/0001-record-architecture-decisions.md) Record architecture decisions
+- [0002](adr/0002-conventional-commits-and-automated-releases.md) Conventional Commits and automated releases
+- [0003](adr/0003-one-agent-instruction-file.md) One agent instruction file for every agent
+
+## Rules the code enforces
+
+<!-- The rules that must always hold, and where each is enforced. A rule enforced only in a prompt or a document is a wish. -->
+
+## Quality gate
+
+`@@quality_cmd@@` runs everything CI runs. The pull request checks are required on `@@default_branch@@`.
+
+## External services
+
+<!-- Each service the software calls, how it is rate-limited, cached and what happens when it fails. -->
