@@ -70,8 +70,10 @@ node <skill>/scripts/foundation.mjs init --config answers.json --target <repo>
 ```
 
 `<skill>` is the folder this `SKILL.md` is in. The script needs Node 22 or later and nothing else. It renders every template
-with the stack's commands, never overwrites a file (add `--force` only when the user asks), runs no git and no network, and
-prints what it created, merged and skipped. It also writes `.project-foundation.json` in the repository: the skill version
+with the stack's commands, never overwrites a file (add `--force` only when the user asks), changes no git state (it only reads `git ls-files`, to warn when git still tracks files that are now ignored, such as
+`.direnv/`) and uses no network, and prints what it created, merged and skipped. `.gitignore` is enriched, never rewritten: the
+lines the generated files need (`.direnv/` and `result` with Nix, `.spec-review/` with spec-driven, the stack's build folders,
+`.env`) are added when missing. It also writes `.project-foundation.json` in the repository: the skill version
 and source commit, your answers, and a hash of each file it generated. Commit it: it is what makes the next section work.
 
 ### 4. Make the gate real
@@ -125,7 +127,9 @@ the templates changed since (exit code 1 when they did). Then `upgrade --target 
 generated files can be brought up to date (as generated, template changed), which are new, which were edited locally and also
 changed in the templates (conflicts), and which were edited locally only (kept). `upgrade --apply` writes the safe ones, puts
 the new template next to a conflicting file as `<file>.upstream` for you to merge by hand, and never overwrites an edited
-file. A file that existed before the foundation was applied is the repository's own and is never touched. The skill itself is
+file. A file that existed before the foundation was applied is the repository's own and is never touched. `upgrade` also adds missing lines to `.gitignore` (and the spec-review block to
+`.env.example`) when the answers now need them, never removing yours. To change a choice, run `upgrade --config new-answers.json
+--apply`: the new answers are saved in `.project-foundation.json`, so later runs start from them. The skill itself is
 updated by whatever installed it (`npx skills update`, or a `git pull` of the clone it is linked from).
 
 ### 9. Optional: README badges
