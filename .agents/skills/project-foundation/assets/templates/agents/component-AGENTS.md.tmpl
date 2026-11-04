@@ -1,0 +1,21 @@
+# @@component_name@@
+
+@@label@@, in `@@component_path@@/`. The repository-wide rules (branches, Conventional Commits, tests, what to ask before
+doing) are in the root `AGENTS.md`; this file adds what is specific to this component.
+
+## Commands (run from this folder)
+
+```
+@@#if setup_cmd@@@@setup_cmd@@      # set up
+@@/if@@@@#if test_cmd@@@@test_cmd@@       # tests
+@@/if@@@@#if lint_cmd@@@@lint_cmd@@       # lint
+@@/if@@@@#if format_cmd@@@@format_cmd@@     # format
+@@/if@@@@quality_cmd@@    # the gate: it must pass before you push
+```
+
+## Conventions
+
+<!-- What a newcomer would get wrong in this component: layering, error handling, naming, what must never be done. -->
+
+- Commit scope: `@@component_name@@`.
+- Keep this component's tests next to its code; never call a paid or external service for real.

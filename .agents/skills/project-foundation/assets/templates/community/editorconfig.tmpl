@@ -1,0 +1,27 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = @@indent_size@@
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+@@#if lang_go@@
+[*.go]
+indent_style = tab
+
+[go.mod]
+indent_style = tab
+@@/if@@@@#if editorconfig_sections@@
+@@editorconfig_sections@@
+@@/if@@
+# Later sections win: data files keep two spaces inside every component.
+[*.{yml,yaml,json}]
+indent_size = 2

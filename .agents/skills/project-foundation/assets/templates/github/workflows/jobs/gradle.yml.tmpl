@@ -1,0 +1,18 @@
+  quality-@@component_name@@:
+    name: @@component_name@@ (@@label@@)
+    runs-on: ubuntu-latest
+    timeout-minutes: @@ci_timeout@@
+@@#if monorepo@@    needs: changes
+    if: needs.changes.outputs.@@component_key@@ == 'true'
+@@/if@@    defaults:
+      run:
+        working-directory: @@component_path@@
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "@@runtime_version@@"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Quality gate
+        run: @@quality_cmd@@

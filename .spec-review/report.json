@@ -1,0 +1,52 @@
+{
+  "base": "origin/main",
+  "head": "HEAD",
+  "changed": [
+    {
+      "path": "README.md",
+      "status": "modified"
+    }
+  ],
+  "touched": [],
+  "unmapped": [],
+  "noSpec": null,
+  "skippedChecks": [
+    "openspec validate: openspec is not installed (nix develop provides it)"
+  ],
+  "findings": [
+    {
+      "rule": "code-map",
+      "level": "warning",
+      "message": "openspec/code-map.json: \"tests/test_memory*.py\" (translation-memory) matches no file.",
+      "file": "openspec/code-map.json"
+    },
+    {
+      "rule": "code-map",
+      "level": "warning",
+      "message": "openspec/code-map.json: \"tests/test_backends*.py\" (translation-memory) matches no file.",
+      "file": "openspec/code-map.json"
+    },
+    {
+      "rule": "code-map",
+      "level": "warning",
+      "message": "openspec/code-map.json: \"tests/test_translator*.py\" (translation-pipeline) matches no file.",
+      "file": "openspec/code-map.json"
+    },
+    {
+      "rule": "code-map",
+      "level": "warning",
+      "message": "openspec/code-map.json: \"tests/test_cli*.py\" (cli) matches no file.",
+      "file": "openspec/code-map.json"
+    }
+  ],
+  "review": {
+    "status": {
+      "state": "not-requested"
+    },
+    "reviewed": [],
+    "skipped": [],
+    "findings": [],
+    "rejected": []
+  },
+  "blockers": []
+}

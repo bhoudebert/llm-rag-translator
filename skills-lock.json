@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "project-foundation": {
+      "source": "bhoudebert/my-skills",
+      "sourceType": "github",
+      "skillPath": "skills/project-foundation/SKILL.md",
+      "computedHash": "ef141a8bdf1a25db65502a8a5053f79905c8f0d65e37ef31b0f8d4decbb8b4db"
+    }
+  }
+}
