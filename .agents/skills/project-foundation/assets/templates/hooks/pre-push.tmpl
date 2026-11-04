@@ -1,8 +1,17 @@
 #!/bin/sh
 # The quality gate before a push, so a red pull request is a surprise less often.
-# Skip once with SKIP_PRE_PUSH=1 git push, or git push --no-verify: the pull request checks run anyway.
-[ -n "$SKIP_PRE_PUSH" ] && { echo "pre-push skipped (SKIP_PRE_PUSH is set)" >&2; exit 0; }
+# Skip the checks once with SKIP_PRE_PUSH=1 git push, or everything with git push --no-verify: the pull request checks run anyway.
 cd "$(git rev-parse --show-toplevel)" || exit 1
+# No push to @@default_branch@@: push a branch and open a pull request. One-off exception: ALLOW_DEFAULT_BRANCH=1 git push
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/@@default_branch@@" ] && [ -z "$ALLOW_DEFAULT_BRANCH" ]; then
+    echo "pre-push: refusing to push to @@default_branch@@. Push a branch and open a pull request." >&2
+    echo "          (a one-off exception: ALLOW_DEFAULT_BRANCH=1 git push)" >&2
+    exit 1
+  fi
+done
+# SKIP_PRE_PUSH skips the checks below, not the rule above.
+[ -n "$SKIP_PRE_PUSH" ] && { echo "pre-push skipped (SKIP_PRE_PUSH is set)" >&2; exit 0; }
 @@#if spec_driven@@
 # The spec review (deterministic checks; a local model too when SPEC_REVIEW_MODEL is set). It never blocks on its own failure.
 if command -v node >/dev/null 2>&1; then

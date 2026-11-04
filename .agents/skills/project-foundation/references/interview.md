@@ -12,6 +12,8 @@ GitHub owner and repo from `git remote -v`, the maintainer from `git config user
 | Components: name, path, stack | one component at the root | Stacks: `node`, `java-maven`, `java-gradle`, `rust`, `python`, `go`, `other`. Names are kebab-case: they become commit scopes and CI job names. |
 | Maintainer GitHub handle | the owner | CODEOWNERS and the code of conduct contact. |
 | Public or private repository, and CodeQL | public: CodeQL on; private: off | `codeql`. Code scanning is free on a public repository. On a **private** one it needs GitHub Code Security (paid, and not offered to every account type); without it the generated workflow fails its upload and every pull request has a red check. Ask, and if the repository is private ask whether they have Code Security. `gh repo view OWNER/REPO --json isPrivate` can answer the first part. |
+| Do agents open pull requests themselves | yes | `agent_opens_prs`. Yes: an agent commits on a branch, pushes the branch, runs `gh pr create` and reports the URL. No: it stops after the commit and tells the user. It never pushes the default branch or merges either way. |
+| Commit the installed skill into the repository | yes | `skill_in_repo`. Yes: `.agents/skills/` and `.claude/skills/` stay tracked, so every contributor and agent has the rules and the `upgrade` tooling, and a skill update is a change of its own (own branch and pull request). No: both folders are added to `.gitignore` and each contributor installs the skill (`npx skills add`). `skills-lock.json` stays tracked either way. |
 | Nix dev shell (`flake.nix`, `.envrc`) | no | `nix`. Yes when the user uses Nix: a shell with the toolchains of every component plus `git`, `gh`, `jq`; direnv loads it. Run `nix flake lock` once afterwards (needs the network) and commit `flake.lock`. |
 | Release automation (release-please) | yes | `release_please`. Needs a PAT secret to run CI on release PRs (see `github-settings.md`). |
 | Spec-driven (openspec + spec-drift reviewer) | no | Only for one component at the root, best with a TypeScript/JavaScript layout. See `spec-driven.md`. |
@@ -60,7 +62,7 @@ Monorepo:
 Required: `project_name`, `project_slug`, `description`, `owner`, `repo`, and either `profile` or `components`.
 
 Root options (all optional): `maintainer_handle`, `license` (`MIT`), `license_holder`, `default_branch`, `release_please`,
-`codeql`, `dependabot`, `nix`, `spec_driven`, `no_attribution`, `header_max` (100), `body_max` (120), `scopes_example`, `ci_timeout`.
+`codeql`, `dependabot`, `nix`, `spec_driven`, `no_attribution`, `agent_opens_prs`, `skill_in_repo`, `header_max` (100), `body_max` (120), `scopes_example`, `ci_timeout`.
 
 A component takes `name`, `path`, `profile`, an optional `owner` (a CODEOWNERS line for its folder), and any profile value to
 override it for this component: `runtime_version`, `setup_cmd`, `build_cmd`, `lint_cmd`, `format_cmd`, `format_check_cmd`,

@@ -225,8 +225,7 @@
         {
           "src": "hooks/pre-commit.tmpl",
           "dest": ".githooks/pre-commit",
-          "exec": true,
-          "only": "precommit_cmd"
+          "exec": true
         },
         {
           "src": "hooks/pre-push.tmpl",

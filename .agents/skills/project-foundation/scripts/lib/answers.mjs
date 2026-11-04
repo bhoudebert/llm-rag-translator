@@ -120,7 +120,7 @@ export function loadVariables(config) {
   const ecosystems = components.filter((c) => c.dependabot_ecosystem);
   root.codeql = truthy(root.codeql) && languages.length > 0;
   root.dependabot = truthy(root.dependabot) && ecosystems.length > 0;
-  for (const flag of ["spec_driven", "no_attribution", "release_please", "nix"]) root[flag] = truthy(root[flag]);
+  for (const flag of ["spec_driven", "no_attribution", "release_please", "nix", "agent_opens_prs", "skill_in_repo"]) root[flag] = truthy(root[flag]);
   if (root.spec_driven && monorepo) {
     fail(
       "spec_driven is not supported for a monorepo yet: the spec reviewer assumes one src/ layout at the root. " +
